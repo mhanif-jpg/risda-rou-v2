@@ -3,7 +3,7 @@ import streamlit as st
 # Tetapan halaman dan reka bentuk lebar penuh
 st.set_page_config(page_title="RISDA RoU Financial Dashboard", layout="wide")
 
-# --- CUSTOM CSS UNTUK PAPARAN KORPORAT ---
+# --- CUSTOM CSS UNTUK PAPARAN KORPORAT KP ---
 st.markdown("""
     <style>
     .main {
@@ -12,7 +12,7 @@ st.markdown("""
     h1 {
         color: #064e3b !important;
         font-weight: 800 !important;
-        font-size: 2.5rem !important;
+        font-size: 2.3rem !important;
     }
     div[data-testid="metric-container"] {
         background-color: #ffffff !important;
@@ -28,7 +28,7 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
     }
     div[data-testid="stMetricValue"] {
-        font-size: 1.7rem !important;
+        font-size: 1.6rem !important;
         font-weight: 700 !important;
         color: #1e293b !important;
     }
@@ -37,6 +37,10 @@ st.markdown("""
         font-weight: 600 !important;
         color: #64748b !important;
         text-transform: uppercase;
+    }
+    .negatif-box {
+        background-color: #fef2f2 !important;
+        border-left: 5px solid #ef4444 !important;
     }
     hr {
         margin-top: 1.2rem !important;
@@ -47,8 +51,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Tajuk Utama
-st.title("📊 Dashboard Analisis Kebolehlaksanaan RoU RISDA")
-st.caption("Alat Simulasi Dinamik Struktur Sewaan, Tempoh Pajakan, Kos Operasi & Pulangan Modal Estet")
+st.title("📊 Dashboard Analisis & Rundingan RoU RISDA")
+st.caption("Alat Simulasi Dinamik Strategi Rundingan Kadar Sewaan Estet & Penilaian Impak Kewangan KP")
 st.markdown("---")
 
 # --- SIDEBAR: PARAMETER PASARAN GLOBAL ---
@@ -80,212 +84,211 @@ def kira_metrik_kewangan(untung_tahunan, kadar_sewa, keluasan, tempoh_tahun):
     npv = sum([cf / (1.10**t) for t, cf in enumerate(aliran_tunai)])
     return modal_terikat, npv, irr, roi
 
-# Tabs Mengikut Ladang
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🌳 AW (Matang Sahaja)", 
-    "🌟 AW (Pelan Penuh 5,747 Ha)", 
-    "🍂 Tropika Sanjung", 
-    "🌱 Sri Pelita Bumi"
+# --- STRUKTUR 3 TAB UTAMA ---
+tab1, tab2, tab3 = st.tabs([
+    "🛠️ Tab 1: Simulator Estet Dinamik (Bebas Hektar)", 
+    "🌳 Tab 2: Anjakan Wawasan (Analisis Pakej 1, 2 & 3)", 
+    "🌟 Tab 3: Anjakan Wawasan (Konsolidasi 5,787 Ha & Rundingan KP)"
 ])
 
-# --- TAB 1: ANJAKAN WAWASAN (MATANG SAHAJA) ---
+# ==========================================
+# TAB 1: SIMULATOR ESTET DINAMIK (BEBAS HEKTAR)
+# ==========================================
 with tab1:
-    st.header("Anjakan Wawasan - Senario 1 (2,300 Ha Matang Sahaja)")
+    st.header("🛠️ Simulator Estet Dinamik (Alat Rundingan Generik)")
+    st.info("💡 Gunakan simulator ini untuk mana-mana estet swasta. Pilih preset atau laraskan luas hektar dan kadar sewa secara live semasa berunding.")
+    
+    col_preset, col_space = st.columns([1, 2])
+    with col_preset:
+        preset_choice = st.selectbox("📌 Pilih Preset Estet / Custom:", [
+            "Custom (Simulasi Bebas)",
+            "Tropika Sanjung (257 Ha)",
+            "Sri Pelita Bumi (344 Ha)"
+        ])
+    
+    # Preset Values
+    if preset_choice == "Tropika Sanjung (257 Ha)":
+        default_ha, default_prod, default_sewa = 257, 700, 1200
+    elif preset_choice == "Sri Pelita Bumi (344 Ha)":
+        default_ha, default_prod, default_sewa = 344, 1113, 1800
+    else:
+        default_ha, default_prod, default_sewa = 1000, 1500, 2000
+
     col_in, col_eff = st.columns([1, 2])
     
     with col_in:
-        st.subheader("📋 Input Operasi & Sewa")
-        tempoh_aw = st.slider("Tempoh RoU (Tahun)", 1, 20, 6, key="aw_t")
-        prod_aw = st.slider("Produktiviti (kg/Ha/Tahun)", 500, 2500, 1500, key="aw_p")
-        sewa_lantai_aw = st.slider("Kadar Sewa Lantai (RM/Ha/Tahun)", 1000, 3000, 1800, key="aw_sl")
-        sewa_siling_aw = st.slider("Kadar Sewa Siling (RM/Ha/Tahun)", 1800, 4000, 2400, key="aw_ss")
+        st.subheader("📋 Input Parametrik Rundingan")
+        hektar_sim = st.slider("Keluasan Estet (Hektar)", 10, 10000, default_ha, key="sim_h")
+        tempoh_sim = st.slider("Tempoh Pajakan RoU (Tahun)", 1, 20, 6, key="sim_t")
+        prod_sim = st.slider("Produktiviti Hasil (kg/Ha/Tahun)", 400, 2500, default_prod, key="sim_p")
+        sewa_sim = st.slider("Kadar Sewaan Rundingan (RM/Ha/Tahun)", 500, 4000, default_sewa, key="sim_s")
         
-        # Pengiraan Keseluruhan Tempoh
-        jum_sewa_lantai_aw = sewa_lantai_aw * 2300 * tempoh_aw
-        jum_sewa_siling_aw = sewa_siling_aw * 2300 * tempoh_aw
-        jum_opex_aw = kos_opex_gc * 2300 * tempoh_aw
+        jum_sewa_sim = sewa_sim * hektar_sim * tempoh_sim
+        jum_opex_sim = kos_opex_gc * hektar_sim * tempoh_sim
         
-        pendapatan_tahunan_aw = prod_aw * harga_clean_rm * 2300
-        kos_tahunan_aw = (kos_opex_gc + sewa_siling_aw) * 2300
-        untung_tahunan_aw = pendapatan_tahunan_aw - kos_tahunan_aw
+        pendapatan_tahunan_sim = prod_sim * harga_clean_rm * hektar_sim
+        kos_tahunan_sim = (kos_opex_gc + sewa_sim) * hektar_sim
+        untung_tahunan_sim = pendapatan_tahunan_sim - kos_tahunan_sim
         
-        jum_untung_aw = untung_tahunan_aw * tempoh_aw
-        jum_modal_aw = jum_opex_aw + jum_sewa_siling_aw
-        kadar_untung_modal_aw = (jum_untung_aw / jum_modal_aw * 100) if jum_modal_aw > 0 else 0
+        jum_untung_sim = untung_tahunan_sim * tempoh_sim
+        jum_modal_sim = jum_opex_sim + jum_sewa_sim
+        kadar_untung_modal_sim = (jum_untung_sim / jum_modal_sim * 100) if jum_modal_sim > 0 else 0
         
-        modal_aw, npv_aw, irr_aw, roi_aw = kira_metrik_kewangan(untung_tahunan_aw, sewa_siling_aw, 2300, tempoh_aw)
+        modal_sim, npv_sim, irr_sim, roi_sim = kira_metrik_kewangan(untung_tahunan_sim, sewa_sim, hektar_sim, tempoh_sim)
 
     with col_eff:
-        st.subheader("💼 Penunjuk Prestasi Kewangan (KPI)")
+        st.subheader("💼 Penunjuk Prestasi Kewangan (KPI Rundingan)")
+        
         r1_1, r1_2 = st.columns(2)
-        r1_1.metric(f"Untung Bersih ({tempoh_aw} Thn)", f"RM {jum_untung_aw:,.0f}")
-        r1_2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_aw:.2f}%")
+        if jum_untung_sim < 0:
+            r1_1.error(f"Untung Bersih ({tempoh_sim} Thn): RM {jum_untung_sim:,.0f}")
+        else:
+            r1_1.metric(f"Untung Bersih ({tempoh_sim} Thn)", f"RM {jum_untung_sim:,.0f}")
+            
+        r1_2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_sim:.2f}%")
         
         st.markdown("---")
         r2_1, r2_2 = st.columns(2)
-        r2_1.metric(f"Jumlah Kos Operasi+GC ({tempoh_aw} Thn)", f"RM {jum_opex_aw:,.0f}")
-        r2_2.metric(f"Kos Sewaan ({tempoh_aw} Thn)", f"Lantai: RM {jum_sewa_lantai_aw/1e6:.2f}M | Siling: RM {jum_sewa_siling_aw/1e6:.2f}M")
+        r2_1.metric(f"Jumlah Kos Operasi+GC ({tempoh_sim} Thn)", f"RM {jum_opex_sim:,.0f}")
+        r2_2.metric(f"Jumlah Komitmen Sewa ({tempoh_sim} Thn)", f"RM {jum_sewa_sim:,.0f}")
         
         st.markdown("---")
         r3_1, r3_2, r3_3 = st.columns(3)
-        r3_1.metric("NPV (@10%)", f"RM {npv_aw:,.0f}")
-        r3_2.metric("IRR (%)", f"{irr_aw:.2f}%")
-        r3_3.metric("ROI (%)", f"{roi_aw:.2f}%")
+        r3_1.metric("NPV (@10%)", f"RM {npv_sim:,.0f}")
+        r3_2.metric("IRR (%)", f"{irr_sim:.2f}%")
+        r3_3.metric("ROI (%)", f"{roi_sim:.2f}%")
         
         st.markdown("---")
-        if untung_tahunan_aw < 0:
-            st.error("🚨 AMARAN: Aliran tunai negatif! Sila tingkatkan produktiviti atau runding semula kadar sewaan.")
-
-# --- TAB 2: ANJAKAN WAWASAN (PELAN PENUH KESELURUHAN) ---
-with tab2:
-    st.header("Anjakan Wawasan - Senario 2 (Pelan Struktur Bersepadu 5,747 Ha)")
-    st.info("💡 Unjuran struktur sewaan bertingkat dan komitmen kewangan jangka panjang.")
-    
-    col_in_full, col_eff_full = st.columns([1, 2])
-    with col_in_full:
-        st.subheader("⏱️ Pilih Fasa Garis Masa RoU")
-        fasa_rou = st.selectbox("Pilih Fasa Analisis:", [
-            "Tahun 1-2 (Fasa Awalan & Tekanan Tunai CAPEX)",
-            "Tahun 3-5 (Fasa Matang Awal & Titik Pulang Modal)",
-            "Tahun 6-20 (Fasa Komersial Puncak & Lonjakan Untung)"
-        ])
-        tempoh_full = st.slider("Tempoh Fasa / Analisis (Tahun)", 1, 20, 20 if "6-20" in fasa_rou else (2 if "1-2" in fasa_rou else 3), key="full_t")
-        margin_sawit_bts = st.slider("Margin Untung Bersih Sawit (RM/MT)", 100, 400, 200, key="full_m")
-        
-        if "Tahun 1-2" in fasa_rou:
-            sewa_c1, sewa_c1_siling, prod_c1 = 1800, 2400, 1500  
-            sewa_c2, sewa_c2_siling, prod_c2 = 300, 500, 800    
-            sewa_c3, sewa_c3_siling, yield_sawit, capex_sawit = 400, 500, 0, 5750000 
-        elif "Tahun 3-5" in fasa_rou:
-            sewa_c1, sewa_c1_siling, prod_c1 = 1800, 2400, 1500
-            sewa_c2, sewa_c2_siling, prod_c2 = 600, 900, 1200   
-            sewa_c3, sewa_c3_siling, yield_sawit, capex_sawit = 600, 800, 13, 1916666 
+        if untung_tahunan_sim < 0:
+            st.error("🚨 ZON MERAH (PROJEK RUGI): Kadar sewa terlalu tinggi atau produktiviti rendah! KP disyorkan minta penurunan kadar sewa.")
+        elif sewa_sim > 2400:
+            st.warning("⚠️ AMARAN SILING SEWA: Kadar sewa melebihi RM2,400/Ha. Margin risiko agensi tinggi jika harga komoditi jatuh.")
         else:
-            sewa_c1, sewa_c1_siling, prod_c1 = 1800, 2400, 1500
-            sewa_c2, sewa_c2_siling, prod_c2 = 600, 900, 1500   
-            sewa_c3, sewa_c3_siling, yield_sawit, capex_sawit = 1800, 2400, 24, 0      
+            st.success("✅ ZON HIJAU (VIABLE): Cadangan kadar sewa berada dalam julat selamat untuk dipersetujui.")
+
+# ==========================================
+# TAB 2: ANJAKAN WAWASAN (PAKEJ INDIVIDU)
+# ==========================================
+with tab2:
+    st.header("🌳 Ladang Anjakan Wawasan - Analisis Mengikut Pakej")
+    
+    pakej_choice = st.radio("Pilih Pakej Unjuran:", [
+        "Pakej 1: Getah Matang Tua (2,300 Ha)",
+        "Pakej 2: Getah Muda (2,337 Ha)",
+        "Pakej 3: Semula Sawit (1,550 Ha)"
+    ], horizontal=True)
+    
+    col_in_p, col_eff_p = st.columns([1, 2])
+    
+    with col_in_p:
+        st.subheader("📋 Tetapan Kadar Sewa Rundingan")
+        tempoh_p = st.slider("Tempoh Analisis (Tahun)", 1, 25, 9, key="p_t")
+        
+        if "Pakej 1" in pakej_choice:
+            st.caption("📌 Status: Matang Tua (1,500 kg/Ha). Keuntungan stabil pada dekad pertama.")
+            sewa_p = st.slider("Kadar Sewa P1 (RM/Ha/Tahun)", 1200, 3500, 2300, key="p1_s")
+            prod_p = 1500
+            ha_p = 2300
+            capex_p = 0
+        elif "Pakej 2" in pakej_choice:
+            st.caption("📌 Status: Getah Muda. Rundingan sewa diskaun 3 tahun pertama (RM1,200).")
+            sewa_p = st.slider("Kadar Sewa P2 (RM/Ha/Tahun)", 1000, 3000, 1200 if tempoh_p <= 3 else 2300, key="p2_s")
+            prod_p = 974 if tempoh_p <= 3 else 1450
+            ha_p = 2337
+            capex_p = 0
+        else:
+            st.caption("📌 Status: Tanam Semula Sawit (GUHA). Capex RM11J setahun pada 3 tahun pertama.")
+            sewa_p = st.slider("Kadar Sewa P3 (RM/Ha/Tahun)", 300, 1500, 500, key="p3_s")
+            prod_p = 0
+            ha_p = 1550
+            capex_p = 11000000 if tempoh_p <= 3 else 0
             
-        # Kira Sewa Lantai vs Siling
-        sewa_lantai_tot = ((sewa_c1*2300) + (sewa_c2*2297) + (sewa_c3*1150)) * tempoh_full
-        sewa_siling_tot = ((sewa_c1_siling*2300) + (sewa_c2_siling*2297) + (sewa_c3_siling*1150)) * tempoh_full
-        opex_tot_full = kos_opex_gc * (2300 + 2297) * tempoh_full
+        rev_p = (prod_p * harga_clean_rm * ha_p) if "Pakej 3" not in pakej_choice else (ha_p * 10 * 200 if tempoh_p > 3 else 0)
+        cost_p = ((kos_opex_gc + sewa_p) * ha_p) + capex_p
+        profit_p = rev_p - cost_p
         
-        profit_c1 = (prod_c1 * harga_clean_rm * 2300) - ((kos_opex_gc + sewa_c1) * 2300)
-        profit_c2 = (prod_c2 * harga_clean_rm * 2297) - ((kos_opex_gc + sewa_c2) * 2297)
-        profit_sawit = (1150 * yield_sawit * margin_sawit_bts) - (1150 * sewa_c3) - capex_sawit
-        
-        tot_untung_tahunan = profit_c1 + profit_c2 + profit_sawit
-        tot_untung_fasa = tot_untung_tahunan * tempoh_full
-        tot_kos_modal_full = opex_tot_full + sewa_siling_tot + (capex_sawit * tempoh_full)
-        kadar_untung_modal_full = (tot_untung_fasa / tot_kos_modal_full * 100) if tot_kos_modal_full > 0 else 0
+        jum_untung_p = profit_p * tempoh_p
+        jum_sewa_p = sewa_p * ha_p * tempoh_p
+        jum_opex_p = (kos_opex_gc * ha_p * tempoh_p) + (capex_p * min(tempoh_p, 3))
+        jum_modal_p = jum_opex_p + jum_sewa_p
+        kadar_untung_modal_p = (jum_untung_p / jum_modal_p * 100) if jum_modal_p > 0 else 0
 
-    with col_eff_full:
-        st.subheader("📊 Prestasi Kewangan Gabungan 5,747 Ha")
-        f1_1, f1_2 = st.columns(2)
-        f1_1.metric(f"Untung Bersih Fasa ({tempoh_full} Thn)", f"RM {tot_untung_fasa:,.0f}")
-        f1_2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_full:.2f}%")
+    with col_eff_p:
+        st.subheader("💼 Penunjuk Prestasi Kewangan Pakej")
+        p1, p2 = st.columns(2)
+        if jum_untung_p < 0:
+            p1.error(f"Untung/Rugi ({tempoh_p} Thn): RM {jum_untung_p:,.0f}")
+        else:
+            p1.metric(f"Untung Bersih ({tempoh_p} Thn)", f"RM {jum_untung_p:,.0f}")
+            
+        p2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_p:.2f}%")
         
         st.markdown("---")
-        f2_1, f2_2 = st.columns(2)
-        f2_1.metric(f"Kos Operasi+GC ({tempoh_full} Thn)", f"RM {opex_tot_full:,.0f}")
-        f2_2.metric(f"Kos Sewaan ({tempoh_full} Thn)", f"Lantai: RM {sewa_lantai_tot/1e6:.2f}M | Siling: RM {sewa_siling_tot/1e6:.2f}M")
-        
-        st.markdown("---")
-        f3_1, f3_2, f3_3 = st.columns(3)
-        f3_1.metric("NPV Global (20 Thn)", "RM 58,305,262" if tot_untung_tahunan > 0 else "RM 11,018,780")
-        f3_2.metric("IRR Projek", "40.19%" if tot_untung_tahunan > 0 else "15.50%")
-        f3_3.metric("ROI Keseluruhan", "3,743.22%" if tot_untung_tahunan > 0 else "280.00%")
+        p3, p4 = st.columns(2)
+        p3.metric(f"Kos Operasi + Capex ({tempoh_p} Thn)", f"RM {jum_opex_p:,.0f}")
+        p4.metric(f"Jumlah Komitmen Sewa ({tempoh_p} Thn)", f"RM {jum_sewa_p:,.0f}")
 
-# --- TAB 3: TROPIKA SANJUNG ---
+# ==========================================
+# TAB 3: ANJAKAN WAWASAN (KONSOLIDASI 5,787 HA)
+# ==========================================
 with tab3:
-    st.header("Ladang Tropika Sanjung (257 Ha Matang)")
-    col_in_ts, col_eff_ts = st.columns([1, 2])
+    st.header("🌟 Anjakan Wawasan - Konsolidasi Keseluruhan 5,787 Ha")
+    st.info("💡 Pandangan Portfolio Keseluruhan. Gunakan ini untuk menunjukkan kepada syarikat swasta bagaimana Pakej 1 menyerap defisit Pakej 3 (Subsidi Silang).")
     
-    with col_in_ts:
-        st.subheader("📋 Input Operasi & Sewa")
-        tempoh_ts = st.slider("Tempoh RoU (Tahun)", 1, 20, 6, key="ts_t")
-        prod_ts = st.slider("Produktiviti (kg/Ha/Tahun)", 400, 2000, 700, key="ts_p")
-        sewa_lantai_ts = st.slider("Kadar Sewa Lantai (RM/Ha/Tahun)", 800, 2000, 1000, key="ts_sl")
-        sewa_siling_ts = st.slider("Kadar Sewa Siling (RM/Ha/Tahun)", 1000, 2400, 1200, key="ts_ss")
-        
-        jum_sewa_lantai_ts = sewa_lantai_ts * 257 * tempoh_ts
-        jum_sewa_siling_ts = sewa_siling_ts * 257 * tempoh_ts
-        jum_opex_ts = kos_opex_gc * 257 * tempoh_ts
-        
-        pendapatan_tahunan_ts = prod_ts * harga_clean_rm * 257
-        kos_tahunan_ts = (kos_opex_gc + sewa_siling_ts) * 257
-        untung_tahunan_ts = pendapatan_tahunan_ts - kos_tahunan_ts
-        
-        jum_untung_ts = untung_tahunan_ts * tempoh_ts
-        jum_modal_ts = jum_opex_ts + jum_sewa_siling_ts
-        kadar_untung_modal_ts = (jum_untung_ts / jum_modal_ts * 100) if jum_modal_ts > 0 else 0
-        
-        modal_ts, npv_ts, irr_ts, roi_ts = kira_metrik_kewangan(untung_tahunan_ts, sewa_siling_ts, 257, tempoh_ts)
-
-    with col_eff_ts:
-        st.subheader("💼 Penunjuk Prestasi Kewangan (KPI)")
-        t1_1, t1_2 = st.columns(2)
-        t1_1.metric(f"Untung Bersih ({tempoh_ts} Thn)", f"RM {jum_untung_ts:,.0f}")
-        t1_2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_ts:.2f}%")
-        
-        st.markdown("---")
-        t2_1, t2_2 = st.columns(2)
-        t2_1.metric(f"Jumlah Kos Operasi+GC ({tempoh_ts} Thn)", f"RM {jum_opex_ts:,.0f}")
-        t2_2.metric(f"Kos Sewaan ({tempoh_ts} Thn)", f"Lantai: RM {jum_sewa_lantai_ts:,.0f} | Siling: RM {jum_sewa_siling_ts:,.0f}")
-        
-        st.markdown("---")
-        t3_1, t3_2, t3_3 = st.columns(3)
-        t3_1.metric("NPV (@10%)", f"RM {npv_ts:,.0f}")
-        t3_2.metric("IRR (%)", f"{irr_ts:.2f}%")
-        t3_3.metric("ROI (%)", f"{roi_ts:.2f}%")
-        
-        st.markdown("---")
-        if prod_ts < 1100:
-            st.error("🚨 KRITIKAL: Rekod produktiviti semasa rendah (700kg/Ha). Sukar menjana keuntungan jika isu buruh tidak diselesaikan.")
-
-# --- TAB 4: SRI PELITA BUMI ---
-with tab4:
-    st.header("Ladang Sri Pelita Bumi (344 Ha Matang)")
-    col_in_sp, col_eff_sp = st.columns([1, 2])
+    fasa_view = st.selectbox("Pilih Perspektif Masa Rundingan:", [
+        "Tahun 1-3: Fasa Awalan & Defisit Capex Sawit",
+        "Tahun 1-9: Fasa RoU Pertengahan (3+3+3) - ZON KEEMASAN",
+        "Tahun 1-25: Kitaran Hayat Penuh 25 Tahun"
+    ])
     
-    with col_in_sp:
-        st.subheader("📋 Input Operasi & Sewa")
-        tempoh_sp = st.slider("Tempoh RoU (Tahun)", 1, 20, 6, key="sp_t")
-        prod_sp = st.slider("Produktiviti (kg/Ha/Tahun)", 500, 2000, 1113, key="sp_p")
-        sewa_lantai_sp = st.slider("Kadar Sewa Lantai (RM/Ha/Tahun)", 1000, 2500, 1200, key="sp_sl")
-        sewa_siling_sp = st.slider("Kadar Sewa Siling (RM/Ha/Tahun)", 1800, 3600, 2400, key="sp_ss")
-        
-        jum_sewa_lantai_sp = sewa_lantai_sp * 344 * tempoh_sp
-        jum_sewa_siling_sp = sewa_siling_sp * 344 * tempoh_sp
-        jum_opex_sp = kos_opex_gc * 344 * tempoh_sp
-        
-        pendapatan_tahunan_sp = prod_sp * harga_clean_rm * 344
-        kos_tahunan_sp = (kos_opex_gc + sewa_siling_sp) * 344
-        untung_tahunan_sp = pendapatan_tahunan_sp - kos_tahunan_sp
-        
-        jum_untung_sp = untung_tahunan_sp * tempoh_sp
-        jum_modal_sp = jum_opex_sp + jum_sewa_siling_sp
-        kadar_untung_modal_sp = (jum_untung_sp / jum_modal_sp * 100) if jum_modal_sp > 0 else 0
-        
-        modal_sp, npv_sp, irr_sp, roi_sp = kira_metrik_kewangan(untung_tahunan_sp, sewa_siling_sp, 344, tempoh_sp)
+    # Data Konsolidasi Berdasarkan Slaid Dokumen
+    if "Tahun 1-3" in fasa_view:
+        untung_lantai = -11800000
+        untung_siling = -19090000
+        rev_tot = 188730000
+        cost_tot = 200530000
+        alert_msg = "🚨 FASA DEFISIT TUNAI: Penumpuan CAPEX Sawit RM11J/Thn. KP perlu pastikan sewa Pakej 3 kekal RM500/Ha!"
+        alert_type = "error"
+    elif "Tahun 1-9" in fasa_view:
+        untung_lantai = 12230000
+        untung_siling = 7880000
+        rev_tot = 580000000
+        cost_tot = 567770000
+        alert_msg = "💰 ZON KEEMASAN (3+3+3): Unjuran Pukal 9 Tahun untung RM12.23J (Lantai). Fasa terbaik untuk dimuktamadkan!"
+        alert_type = "success"
+    else:
+        untung_lantai = 68760000
+        untung_siling = 8900000
+        rev_tot = 1249070000
+        cost_tot = 1180310000
+        alert_msg = "📈 KITARAN PENUH 25 TAHUN: Projek sangat berdaya saing dengan Untung Pukal RM68.76 Juta (Kadar Lantai)."
+        alert_type = "info"
 
-    with col_eff_sp:
-        st.subheader("💼 Penunjuk Prestasi Kewangan (KPI)")
-        s1_1, s1_2 = st.columns(2)
-        s1_1.metric(f"Untung Bersih ({tempoh_sp} Thn)", f"RM {jum_untung_sp:,.0f}")
-        s1_2.metric("Pulangan Atas Kos/Modal (%)", f"{kadar_untung_modal_sp:.2f}%")
+    col_k1, col_k2 = st.columns(2)
+    with col_k1:
+        st.subheader("📊 Prestasi Kadar LANTAI (Floor)")
+        st.metric("Untung Bersih Pukal Fasa", f"RM {untung_lantai:,.0f}")
+        st.metric("NPV (@10% Diskaun)", "RM 3.92 Juta" if untung_lantai > 0 else "-RM 4.12 Juta")
+        st.metric("ROI Keseluruhan", "17.01%" if untung_lantai > 0 else "-5.20%")
         
-        st.markdown("---")
-        s2_1, s2_2 = st.columns(2)
-        s2_1.metric(f"Jumlah Kos Operasi+GC ({tempoh_sp} Thn)", f"RM {jum_opex_sp:,.0f}")
-        s2_2.metric(f"Kos Sewaan ({tempoh_sp} Thn)", f"Lantai: RM {jum_sewa_lantai_sp:,.0f} | Siling: RM {jum_sewa_siling_sp:,.0f}")
+    with col_k2:
+        st.subheader("📊 Prestasi Kadar SILING (Ceiling)")
+        st.metric("Untung Bersih Pukal Fasa", f"RM {untung_siling:,.0f}")
+        st.metric("NPV (@10% Diskaun)", "RM 1.25 Juta" if untung_siling > 0 else "-RM 8.40 Juta")
+        st.metric("ROI Keseluruhan", "10.34%" if untung_siling > 0 else "-9.10%")
+
+    st.markdown("---")
+    
+    if alert_type == "error":
+        st.error(alert_msg)
+    elif alert_type == "success":
+        st.success(alert_msg)
+    else:
+        st.info(alert_msg)
         
-        st.markdown("---")
-        s3_1, s3_2, s3_3 = st.columns(3)
-        s3_1.metric("NPV (@10%)", f"RM {npv_sp:,.0f}")
-        s3_2.metric("IRR (%)", f"{irr_sp:.2f}%")
-        s3_3.metric("ROI (%)", f"{roi_sp:.2f}%")
-        
-        st.markdown("---")
-        if sewa_siling_sp > 2400:
-            st.error("🚨 AMARAN SILING: Kadar sewaan melebihi had selamat RM2,400/Ha (Had 55% keuntungan hasil).")
+    st.subheader("💡 Nota Strategi Rundingan KP (Batu Penanda / Trade-off):")
+    st.markdown("""
+    * **Strategi Pakej 3 (Sawit):** Pertahankan sewa **RM500 – RM800/Ha**. Jika syarikat swasta minta RM1,500/Ha, tunjukkan bahawa aliran tunai Tahun 1–3 akan defisit melebihi RM20 Juta.
+    * **Strategi Pakej 2 (Getah Muda):** Guna formula sewa bertingkat ($3+3+3$). Tahun 1–3 minta diskaun **RM1,200/Ha**, dan naik ke **RM2,300/Ha** pada Tahun 4 selepas hasil pokok melepasi $1,200\text{ kg/Ha}$.
+    * **Subsidi Silang:** Keuntungan Pakej 1 (Getah Matang) sekitar **RM3.79J setahun** adalah 'perisai' untuk menampung kos pembangunan awal Pakej 3.
+    """)
