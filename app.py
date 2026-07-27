@@ -121,7 +121,9 @@ with tab1:
         hektar_sim = st.slider("Keluasan Estet (Hektar)", 10, 10000, default_ha, key="sim_h")
         tempoh_sim = st.slider("Tempoh Pajakan RoU (Tahun)", 1, 20, 6, key="sim_t")
         prod_sim = st.slider("Produktiviti Hasil (kg/Ha/Tahun)", 400, 2500, default_prod, key="sim_p")
-        sewa_sim = st.slider("Kadar Sewaan Rundingan (RM/Ha/Tahun)", 500, 4000, default_sewa, key="sim_s")
+        
+        # SLIDER DENGAN MAKSIMUM RM6,000
+        sewa_sim = st.slider("Kadar Sewaan Rundingan (RM/Ha/Tahun)", 500, 6000, default_sewa, key="sim_s")
         
         jum_sewa_sim = sewa_sim * hektar_sim * tempoh_sim
         jum_opex_sim = kos_opex_gc * hektar_sim * tempoh_sim
@@ -186,21 +188,21 @@ with tab2:
         st.subheader("📋 Tetapan Kadar Sewa Bertingkat")
         tempoh_p = st.slider("Tempoh Unjuran (Tahun)", 1, 25, 9, key="p_t")
         
-        # Slider Kadar Sewa mengikut Pakej
+        # SLIDER MAKSIMUM RM6,000 UNTUK TAB 2
         if "Pakej 1" in pakej_choice and "Gabungan" not in pakej_choice:
             st.caption("📌 Status P1: Matang Tua. Hasil stabil 1,450 - 1,500 kg/Ha.")
-            sewa_p1_val = st.slider("Kadar Sewa Pakej 1 (RM/Ha/Tahun)", 1200, 3500, 2300, key="p1_only_s")
+            sewa_p1_val = st.slider("Kadar Sewa Pakej 1 (RM/Ha/Tahun)", 500, 6000, 2300, key="p1_only_s")
             sewa_p2_f1_val, sewa_p2_f2_val = 1200, 2300
         elif "Pakej 2" in pakej_choice and "Gabungan" not in pakej_choice:
             st.caption("📌 Status P2: Muda. Sewa bertingkat Fasa 1 (Tahun 1-3) vs Fasa 2 (Tahun 4+).")
-            sewa_p2_f1_val = st.slider("Sewa Diskaun Fasa 1 - Thn 1-3 (RM/Ha)", 500, 2000, 1200, key="p2_s1")
-            sewa_p2_f2_val = st.slider("Sewa Penuh Fasa 2 - Thn 4+ (RM/Ha)", 1500, 3500, 2300, key="p2_s2")
+            sewa_p2_f1_val = st.slider("Sewa Diskaun Fasa 1 - Thn 1-3 (RM/Ha)", 500, 6000, 1200, key="p2_s1")
+            sewa_p2_f2_val = st.slider("Sewa Penuh Fasa 2 - Thn 4+ (RM/Ha)", 500, 6000, 2300, key="p2_s2")
             sewa_p1_val = 2300
         else: # Gabungan
             st.caption("📌 Gabungan P1 + P2 (5,787 Ha Getah Keseluruhan).")
-            sewa_p1_val = st.slider("Kadar Sewa Pakej 1 (RM/Ha)", 1200, 3500, 2300, key="p_gab_s1")
-            sewa_p2_f1_val = st.slider("Sewa Pakej 2 (Thn 1-3) RM/Ha", 500, 2000, 1200, key="p_gab_s2_f1")
-            sewa_p2_f2_val = st.slider("Sewa Pakej 2 (Thn 4+) RM/Ha", 1500, 3500, 2300, key="p_gab_s2_f2")
+            sewa_p1_val = st.slider("Kadar Sewa Pakej 1 (RM/Ha)", 500, 6000, 2300, key="p_gab_s1")
+            sewa_p2_f1_val = st.slider("Sewa Pakej 2 (Thn 1-3) RM/Ha", 500, 6000, 1200, key="p_gab_s2_f1")
+            sewa_p2_f2_val = st.slider("Sewa Pakej 2 (Thn 4+) RM/Ha", 500, 6000, 2300, key="p_gab_s2_f2")
 
         # LOGIK PENGIRAAN GELUNG TAHUN DEMI TAHUN GETAH
         aliran_untung_p = []
